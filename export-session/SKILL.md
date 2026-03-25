@@ -7,12 +7,17 @@ description: Export the current Claude Code session to a browsable HTML transcri
 
 Convert the current Claude Code session into a paginated, mobile-friendly HTML transcript. Skill content blocks are automatically collapsed so the export stays readable.
 
+## Prerequisites
+
+Requires `uv` (Python package manager). The export tool is fetched automatically on first run from `stan-voo/claude-code-transcripts`.
+
 ## Step 1: Find the session file
 
 Run the helper script to locate the current session:
 
 ```bash
-bash ~/.claude/skills/export-session/scripts/find-session.sh
+SKILL_DIR="$(dirname "$(readlink -f ~/.claude/skills/export-session/SKILL.md 2>/dev/null || echo ~/.claude/skills/export-session/SKILL.md)")"
+bash "$SKILL_DIR/scripts/find-session.sh"
 ```
 
 This returns the path to the most recently modified `.jsonl` file for the current project.
@@ -22,7 +27,7 @@ This returns the path to the most recently modified `.jsonl` file for the curren
 Pick an output directory (default: `downloads/session-YYYY-MM-DD` in the project root) and run:
 
 ```bash
-bash ~/.claude/skills/export-session/scripts/export.sh <SESSION_FILE> <OUTPUT_DIR>
+bash "$SKILL_DIR/scripts/export.sh" <SESSION_FILE> <OUTPUT_DIR>
 ```
 
 ## Step 3: Open in browser
@@ -31,19 +36,24 @@ bash ~/.claude/skills/export-session/scripts/export.sh <SESSION_FILE> <OUTPUT_DI
 open <OUTPUT_DIR>/index.html
 ```
 
-## Sharing Options
+## Sharing via Gist
 
 To create a GitHub Gist for sharing (requires `gh` CLI):
 
 ```bash
-uv run --project /Users/stan/dev/pkm-iv/claude-code-transcripts claude-code-transcripts json <SESSION_FILE> --gist
+uvx --from "git+https://github.com/stan-voo/claude-code-transcripts" claude-code-transcripts json <SESSION_FILE> --gist
 ```
 
-This uploads the transcript and returns a shareable preview URL.
+## For developers
+
+Set `TRANSCRIPT_TOOL_PATH` to use a local clone instead of fetching from GitHub:
+
+```bash
+export TRANSCRIPT_TOOL_PATH=/path/to/claude-code-transcripts
+```
 
 ## Notes
 
-- The tool is a custom fork of `simonw/claude-code-transcripts` at `/Users/stan/dev/pkm-iv/claude-code-transcripts`
-- It automatically collapses skill definition blocks (SKILL.md injections) into expandable `<details>` elements
-- Output includes an index page with a timeline of all prompts, plus paginated conversation pages (5 prompts per page)
-- The `--gist` flag creates a public gist viewable via gisthost.github.io
+- Based on a [custom fork](https://github.com/stan-voo/claude-code-transcripts) of `simonw/claude-code-transcripts` ([PR #90](https://github.com/simonw/claude-code-transcripts/pull/90))
+- Collapses skill definition blocks (SKILL.md injections) into expandable `<details>` elements
+- Output includes an index page with timeline + paginated conversation pages (5 prompts per page)

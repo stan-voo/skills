@@ -1,9 +1,9 @@
 #!/bin/bash
 # Export a Claude Code session to HTML
 # Usage: ./export.sh <session-file> <output-dir>
-# Requires: uv, the custom fork at /Users/stan/dev/pkm-iv/claude-code-transcripts
+# Requires: uv
+# Set TRANSCRIPT_TOOL_PATH to use a local dev copy instead of the installed tool.
 
-FORK_PATH="/Users/stan/dev/pkm-iv/claude-code-transcripts"
 SESSION_FILE="$1"
 OUTPUT_DIR="$2"
 
@@ -17,4 +17,9 @@ if [ ! -f "$SESSION_FILE" ]; then
     exit 1
 fi
 
-uv run --project "$FORK_PATH" claude-code-transcripts json "$SESSION_FILE" -o "$OUTPUT_DIR"
+# Use local dev copy if set, otherwise use installed tool
+if [ -n "$TRANSCRIPT_TOOL_PATH" ]; then
+    uv run --project "$TRANSCRIPT_TOOL_PATH" claude-code-transcripts json "$SESSION_FILE" -o "$OUTPUT_DIR"
+else
+    uvx --from "git+https://github.com/stan-voo/claude-code-transcripts" claude-code-transcripts json "$SESSION_FILE" -o "$OUTPUT_DIR"
+fi
